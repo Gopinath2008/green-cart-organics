@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Green Cart Organics - SCM Platform</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React & ReactDOM CDNs -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Babel Standalone CDN -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function GreenCartApp() {
+      const [role, setRole] = useState('admin'); // admin, customer, farmer, driver
+      const [activeTab, setActiveTab] = useState('overview');
+      
+      // State for orders & inventory aggregation
+      const [customerOrders, setCustomerOrders] = useState([
+        { id: 'ORD-101', item: 'Tomatoes', qty: 2, unit: 'kg', status: 'Pending Aggregation', address: '12 North St, City A' },
+        { id: 'ORD-102', item: 'Tomatoes', qty: 3, unit: 'kg', status: 'Pending Aggregation', address: '45 South Ave, City A' },
+        { id: 'ORD-103', item: 'Spinach', qty: 1, unit: 'kg', status: 'Pending Aggregation', address: '88 West Rd, City A' },
+      ]);
+
+      const [farmerQuotas, setFarmerQuotas] = useState([
+        { id: 'FQ-01', farmer: 'Ramesh (Village 1)', crop: 'Tomatoes', targetQty: 20, collectedQty: 5, status: 'Harvesting' },
+        { id: 'FQ-02', farmer: 'Suresh (Village 2)', crop: 'Spinach', targetQty: 15, collectedQty: 1, status: 'Assigned' },
+        { id: 'FQ-03', farmer: 'Lakshmi (Village 1)', crop: 'Marigold Flowers', targetQty: 10, collectedQty: 10, status: 'Ready for Pickup' },
+      ]);
+
+      const [truckShipments, setTruckShipments] = useState([
+        { id: 'TRK-901', driver: 'Kumar', route: 'Village 1 -> City A Central Hub', status: 'In Transit', capacity: '85%' },
+        { id: 'TRK-902', driver: 'Mani', route: 'Village 2 -> City B Central Hub', status: 'Loading', capacity: '40%' }
+      ]);
+
+      const [newOrder, setNewOrder] = useState({ item: 'Tomatoes', qty: 1, address: '' });
+
+      // Handle placing new consumer order
+      const handlePlaceOrder = (e) => {
+        e.preventDefault();
+        if (!newOrder.address) return;
+        const created = {
+          id: `ORD-${100 + customerOrders.length + 1}`,
+          item: newOrder.item,
+          qty: Number(newOrder.qty),
+          unit: 'kg',
+          status: 'Pending Aggregation',
+          address: newOrder.address
+        };
+        setCustomerOrders([...customerOrders, created]);
+        setNewOrder({ item: 'Tomatoes', qty: 1, address: '' });
+        alert('Order Placed Successfully!');
+      };
+
+      return (
+        <div class="min-h-screen flex flex-col">
+          {/* Header & Role Switcher */}
+          <header class="bg-emerald-700 text-white shadow-lg p-4 sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+              <div class="flex items-center space-x-3">
+                <div class="bg-white text-emerald-700 p-2 rounded-lg font-bold text-xl">GC</div>
+                <div>
+                  <h1 class="text-xl font-bold">Green Cart Organics</h1>
+                  <p class="text-xs text-emerald-200">Supply Chain & Operations Hub</p>
+                </div>
+              </div>
+
+              {/* Stakeholder Role Switcher */}
+              <div class="flex items-center bg-emerald-800 rounded-lg p-1 text-sm overflow-x-auto max-w-full">
+                <button 
+                  onClick={() => setRole('admin')}
+                  class={`px-3 py-1.5 rounded-md transition ${role === 'admin' ? 'bg-white text-emerald-800 font-semibold' : 'hover:bg-emerald-700'}`}>
+                  Admin Control (Ravi)
+                </button>
+                <button 
+                  onClick={() => setRole('customer')}
+                  class={`px-3 py-1.5 rounded-md transition ${role === 'customer' ? 'bg-white text-emerald-800 font-semibold' : 'hover:bg-emerald-700'}`}>
+                  Customer Portal
+                </button>
+                <button 
+                  onClick={() => setRole('farmer')}
+                  class={`px-3 py-1.5 rounded-md transition ${role === 'farmer' ? 'bg-white text-emerald-800 font-semibold' : 'hover:bg-emerald-700'}`}>
+                  Farmer Village UI
+                </button>
+                <button 
+                  onClick={() => setRole('driver')}
+                  class={`px-3 py-1.5 rounded-md transition ${role === 'driver' ? 'bg-white text-emerald-800 font-semibold' : 'hover:bg-emerald-700'}`}>
+                  Logistics Driver
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Workspace */}
+          <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6">
+
+            {/* 1. RAVI'S ADMIN DASHBOARD */}
+            {role === 'admin' && (
+              <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                    <p class="text-sm text-gray-500 font-medium">Active Consumer Demand</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">{customerOrders.length} Orders</p>
+                    <span class="text-xs text-emerald-600 font-medium mt-1 inline-block">Aggregated across 3 Cities</span>
+                  </div>
+                  <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                    <p class="text-sm text-gray-500 font-medium">Assigned Farmer Quotas</p>
+                    <p class="text-3xl font-bold text-emerald-600 mt-2">{farmerQuotas.length} Active</p>
+                    <span class="text-xs text-gray-500 mt-1 inline-block">2 Village Cooperatives</span>
+                  </div>
+                  <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                    <p class="text-sm text-gray-500 font-medium">First-Mile Fleet</p>
+                    <p class="text-3xl font-bold text-blue-600 mt-2">2 Trucks</p>
+                    <span class="text-xs text-blue-600 font-medium mt-1 inline-block">En-route to Hubs</span>
+                  </div>
+                  <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                    <p class="text-sm text-gray-500 font-medium">Efficiency Index</p>
+                    <p class="text-3xl font-bold text-purple-600 mt-2">94.2%</p>
+                    <span class="text-xs text-purple-600 font-medium mt-1 inline-block">Zero Phone-Call Dependency</span>
+                  </div>
+                </div>
+
+                {/* Demand Aggregation & Quota Engine */}
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                  <h2 class="text-lg font-bold text-gray-900 mb-4">Demand Aggregation & Farmer Allocation Engine</h2>
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                      <thead>
+                        <tr class="bg-gray-100 text-gray-700">
+                          <th class="p-3">Quota ID</th>
+                          <th class="p-3">Farmer Name</th>
+                          <th class="p-3">Crop</th>
+                          <th class="p-3">Target Quota</th>
+                          <th class="p-3">Harvested & Loaded</th>
+                          <th class="p-3">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-gray-200">
+                        {farmerQuotas.map(fq => (
+                          <tr key={fq.id} class="hover:bg-gray-50">
+                            <td class="p-3 font-semibold text-emerald-700">{fq.id}</td>
+                            <td class="p-3">{fq.farmer}</td>
+                            <td class="p-3">{fq.crop}</td>
+                            <td class="p-3 font-medium">{fq.targetQty} kg</td>
+                            <td class="p-3">{fq.collectedQty} kg</td>
+                            <td class="p-3">
+                              <span class={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                fq.status === 'Ready for Pickup' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
+                              }`}>
+                                {fq.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 2. CUSTOMER PORTAL */}
+            {role === 'customer' && (
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm md:col-span-1">
+                  <h2 class="text-lg font-bold text-gray-900 mb-4">Place Order</h2>
+                  <form onSubmit={handlePlaceOrder} class="space-y-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700">Select Produce</label>
+                      <select 
+                        value={newOrder.item} 
+                        onChange={e => setNewOrder({...newOrder, item: e.target.value})}
+                        class="mt-1 w-full p-2.5 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                        <option>Tomatoes</option>
+                        <option>Spinach</option>
+                        <option>Marigold Flowers</option>
+                        <option>Carrots</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700">Quantity (kg)</label>
+                      <input 
+                        type="number" min="1" max="10"
+                        value={newOrder.qty} 
+                        onChange={e => setNewOrder({...newOrder, qty: e.target.value})}
+                        class="mt-1 w-full p-2.5 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700">Delivery Address</label>
+                      <input 
+                        type="text" placeholder="e.g. No 14, Main Street"
+                        value={newOrder.address} 
+                        onChange={e => setNewOrder({...newOrder, address: e.target.value})}
+                        class="mt-1 w-full p-2.5 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-600 text-white font-semibold py-2.5 rounded-lg hover:bg-emerald-700">
+                      Submit Order
+                    </button>
+                  </form>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm md:col-span-2">
+                  <h2 class="text-lg font-bold text-gray-900 mb-4">Your Recent Orders</h2>
+                  <div class="space-y-3">
+                    {customerOrders.map(ord => (
+                      <div key={ord.id} class="p-4 border border-gray-200 rounded-lg flex justify-between items-center bg-gray-50">
+                        <div>
+                          <p class="font-bold text-gray-800">{ord.item} - {ord.qty} {ord.unit}</p>
+                          <p class="text-xs text-gray-500">{ord.address}</p>
+                          <span class="text-xs font-mono text-emerald-700">{ord.id}</span>
+                        </div>
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
+                          {ord.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 3. FARMER PORTAL */}
+            {role === 'farmer' && (
+              <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                <div class="bg-emerald-50 p-4 rounded-lg mb-6 border border-emerald-200">
+                  <h2 class="text-xl font-bold text-emerald-900">Farmer Village Portal</h2>
+                  <p class="text-sm text-emerald-700">Simplified high-contrast view for field operators</p>
+                </div>
+
+                <h3 class="text-md font-bold text-gray-800 mb-3">Today's Assigned Crop Quotas</h3>
+                <div class="space-y-4">
+                  {farmerQuotas.map(fq => (
+                    <div key={fq.id} class="p-5 border-2 border-emerald-100 rounded-xl bg-white shadow-sm space-y-3">
+                      <div class="flex justify-between items-center">
+                        <span class="text-lg font-bold text-gray-900">{fq.crop}</span>
+                        <span class="text-sm font-semibold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">{fq.targetQty} kg Target</span>
+                      </div>
+                      <p class="text-sm text-gray-600">Assigned Farmer: <strong>{fq.farmer}</strong></p>
+                      
+                      <div class="flex gap-2">
+                        <button 
+                          onClick={() => {
+                            setFarmerQuotas(farmerQuotas.map(item => item.id === fq.id ? {...item, status: 'Ready for Pickup', collectedQty: item.targetQty} : item));
+                          }}
+                          class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-sm">
+                          Mark Ready for Truck Loading
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 4. DRIVER PORTAL */}
+            {role === 'driver' && (
+              <div class="max-w-3xl mx-auto space-y-6">
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                  <h2 class="text-lg font-bold text-gray-900 mb-4">First-Mile Logistics (Village to City Hub)</h2>
+                  {truckShipments.map(trk => (
+                    <div key={trk.id} class="p-4 border border-gray-200 rounded-lg mb-3 bg-slate-50">
+                      <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-slate-800">{trk.id} ({trk.driver})</span>
+                        <span class="text-xs bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-full">{trk.status}</span>
+                      </div>
+                      <p class="text-sm text-gray-600 mb-2">Route: {trk.route}</p>
+                      <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-emerald-600 h-2.5 rounded-full" style={{ width: trk.capacity }}></div>
+                      </div>
+                      <span class="text-xs text-gray-500 mt-1 block">Vehicle Load Capacity: {trk.capacity}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </main>
+
+          {/* Footer */}
+          <footer class="bg-gray-100 border-t border-gray-200 p-4 text-center text-xs text-gray-500">
+            Green Cart Organics Operations Platform &copy; 2026. Designed for Multi-City Supply Chain Aggregation.
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<GreenCartApp />);
+  </script>
+</body>
+</html>
